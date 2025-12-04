@@ -37,13 +37,14 @@ data "archive_file" "s3_trigger_zip" {
 
 # S3 Event Notification
 resource "aws_s3_bucket_notification" "training_trigger" {
-  bucket = data.aws_s3_bucket.training_data.id
+  bucket = data.aws_s3_bucket.training_data.bucket
 
   lambda_function {
     lambda_function_arn = aws_lambda_function.s3_github_trigger.arn
     events              = ["s3:ObjectCreated:*"]
     filter_prefix       = "training-data/"
     filter_suffix       = ".csv"
+    id                  = "lambda-trigger"
   }
 
   depends_on = [aws_lambda_permission.s3_invoke]

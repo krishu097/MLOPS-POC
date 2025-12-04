@@ -11,7 +11,7 @@ data "aws_secretsmanager_secret" "github_token" {
 # Lambda function for S3 trigger
 resource "aws_lambda_function" "s3_github_trigger" {
   filename         = "s3_github_trigger.zip"
-  function_name    = "${var.name_prefix}-s3-github-trigger"
+  function_name    = "mlops-s3-github-trigger"
   role            = aws_iam_role.lambda_s3_trigger_role.arn
   handler         = "s3_github_trigger.lambda_handler"
   runtime         = "python3.11"
@@ -54,9 +54,9 @@ resource "aws_s3_bucket_notification" "training_trigger" {
 resource "aws_lambda_permission" "s3_invoke" {
   statement_id  = "AllowExecutionFromS3Bucket"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.s3_github_trigger.function_name
+  function_name = "mlops-s3-github-trigger"
   principal     = "s3.amazonaws.com"
-  source_arn    = data.aws_s3_bucket.training_data.arn
+  source_arn    = "arn:aws:s3:::${var.training_data_bucket}"
 }
 
 # IAM role for Lambda

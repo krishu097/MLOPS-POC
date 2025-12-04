@@ -62,23 +62,21 @@ resource "aws_iam_role" "ebs_csi_driver_role" {
     Version = "2012-10-17"
     Statement = [
       {
-        Action = "sts:AssumeRole"
         Effect = "Allow"
         Principal = {
-          Federated = aws_iam_openid_connect_provider.eks.arn
+          Service = "pods.eks.amazonaws.com"
         }
-        Condition = {
-          StringEquals = {
-            "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub": "system:serviceaccount:kube-system:ebs-csi-controller-sa"
-          }
-        }
+        Action = [
+          "sts:AssumeRole",
+          "sts:TagSession"
+        ]
       }
     ]
   })
 }
 
-resource "aws_iam_role_policy_attachment" "ebs_csi_policy" {
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+resource "aws_iam_role_policy_attachment" "ebs_csi_driver_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/service-role/Amazon_EBS_CSI_Driver"
   role       = aws_iam_role.ebs_csi_driver_role.name
 }
 
@@ -90,27 +88,25 @@ resource "aws_iam_role" "eks_ecr_access_role" {
     Version = "2012-10-17"
     Statement = [
       {
-        Action = "sts:AssumeRole"
         Effect = "Allow"
         Principal = {
-          Federated = aws_iam_openid_connect_provider.eks.arn
+          Service = "pods.eks.amazonaws.com"
         }
-        Condition = {
-          StringEquals = {
-            "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub": "system:serviceaccount:default:ecr-pull-sa"
-          }
-        }
+        Action = [
+          "sts:AssumeRole",
+          "sts:TagSession"
+        ]
       }
     ]
   })
 }
 
-resource "aws_iam_role_policy_attachment" "ecr_access_policy" {
+resource "aws_iam_role_policy_attachment" "eks_ecr_access_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
   role       = aws_iam_role.eks_ecr_access_role.name
 }
 
-# Load Balancer Controller Role
+# AWS Load Balancer Controller Role
 resource "aws_iam_role" "aws_load_balancer_controller_role" {
   name = "aws-load-balancer-controller-role"
 
@@ -118,16 +114,14 @@ resource "aws_iam_role" "aws_load_balancer_controller_role" {
     Version = "2012-10-17"
     Statement = [
       {
-        Action = "sts:AssumeRole"
         Effect = "Allow"
         Principal = {
-          Federated = aws_iam_openid_connect_provider.eks.arn
+          Service = "pods.eks.amazonaws.com"
         }
-        Condition = {
-          StringEquals = {
-            "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub": "system:serviceaccount:kube-system:aws-load-balancer-controller"
-          }
-        }
+        Action = [
+          "sts:AssumeRole",
+          "sts:TagSession"
+        ]
       }
     ]
   })
@@ -295,19 +289,3 @@ resource "aws_iam_role_policy" "aws_load_balancer_controller_policy" {
   })
 }
 
-# OIDC Provider - will be created after EKS cluster
-data "aws_eks_cluster" "cluster" {
-  name = module.eks.cluster_name
-}
-
-data "tls_certificate" "eks" {
-  url = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
-}
-
-resource "aws_iam_openid_connect_provider" "eks" {
-  client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = [data.tls_certificate.eks.certificates[0].sha1_fingerprint]
-  url             = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
-
-  depends_on = [module.eks]
-}

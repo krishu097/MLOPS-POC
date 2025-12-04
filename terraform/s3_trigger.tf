@@ -3,13 +3,18 @@ data "aws_s3_bucket" "training_data" {
   bucket = var.training_data_bucket
 }
 
+# Use existing GitHub token secret
+data "aws_secretsmanager_secret" "github_token" {
+  name = "dr-github-token"
+}
+
 # Lambda function for S3 trigger
 resource "aws_lambda_function" "s3_github_trigger" {
   filename         = "s3_github_trigger.zip"
   function_name    = "${var.name_prefix}-s3-github-trigger"
   role            = aws_iam_role.lambda_s3_trigger_role.arn
   handler         = "s3_github_trigger.lambda_handler"
-  runtime         = "python3.9"
+  runtime         = "python3.11"
   timeout         = 60
 
   environment {

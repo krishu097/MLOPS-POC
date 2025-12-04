@@ -1,6 +1,6 @@
 # EKS Cluster Role
 resource "aws_iam_role" "eks_cluster_role" {
-  name = "eks-cluster-role"
+  name = "${var.name_prefix}-eks-cluster-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -23,7 +23,7 @@ resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
 
 # EKS Node Group Role
 resource "aws_iam_role" "eks_node_role" {
-  name = "eks-node-role"
+  name = "${var.name_prefix}-eks-node-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -56,7 +56,7 @@ resource "aws_iam_role_policy_attachment" "eks_container_registry_policy" {
 
 # EBS CSI Driver Role
 resource "aws_iam_role" "ebs_csi_driver_role" {
-  name = "ebs-csi-driver-role"
+  name = "${var.name_prefix}-ebs-csi-driver-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -76,13 +76,13 @@ resource "aws_iam_role" "ebs_csi_driver_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "ebs_csi_driver_policy" {
-  policy_arn = "arn:aws:iam::aws:policy/service-role/Amazon_EBS_CSI_Driver"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
   role       = aws_iam_role.ebs_csi_driver_role.name
 }
 
 # ECR Access Role
 resource "aws_iam_role" "eks_ecr_access_role" {
-  name = "eks-ecr-access-role"
+  name = "${var.name_prefix}-eks-ecr-access-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -108,7 +108,7 @@ resource "aws_iam_role_policy_attachment" "eks_ecr_access_policy" {
 
 # AWS Load Balancer Controller Role
 resource "aws_iam_role" "aws_load_balancer_controller_role" {
-  name = "aws-load-balancer-controller-role"
+  name = "${var.name_prefix}-aws-load-balancer-controller-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"

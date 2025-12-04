@@ -1,9 +1,6 @@
 name: MLOps Pipeline
 
 on:
-  push:
-    branches: [main]
-    paths: ['data.csv', 'code/**']
   workflow_dispatch:
     inputs:
       trigger_reason:

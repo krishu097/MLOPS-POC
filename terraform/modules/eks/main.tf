@@ -66,7 +66,6 @@ resource "kubernetes_service_account" "aws_load_balancer_controller" {
       "app.kubernetes.io/component" = "controller"
     }
   }
-
   depends_on = [aws_eks_cluster.mlops-cluster, aws_eks_node_group.mlops-node-group]
 }
 

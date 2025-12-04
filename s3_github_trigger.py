@@ -1,6 +1,7 @@
 import json
 import boto3
-import requests
+import urllib.request
+import urllib.parse
 import os
 
 def lambda_handler(event, context):
@@ -43,11 +44,18 @@ def lambda_handler(event, context):
                 }
             }
             
-            response = requests.post(url, headers=headers, json=data)
+            # Create request
+            req_data = json.dumps(data).encode('utf-8')
+            request = urllib.request.Request(url, data=req_data, headers=headers)
+            request.add_header('Content-Type', 'application/json')
             
-            if response.status_code == 204:
-                print(f"✅ Training triggered for: {key}")
-            else:
-                print(f"❌ Failed to trigger: {response.text}")
+            try:
+                response = urllib.request.urlopen(request)
+                if response.getcode() == 204:
+                    print(f"✅ Training triggered for: {key}")
+                else:
+                    print(f"❌ Unexpected response code: {response.getcode()}")
+            except Exception as e:
+                print(f"❌ Failed to trigger: {e}")
     
     return {'statusCode': 200}

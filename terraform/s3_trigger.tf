@@ -28,30 +28,11 @@ resource "aws_lambda_function" "s3_github_trigger" {
   depends_on = [data.archive_file.s3_trigger_zip]
 }
 
-# Create Lambda package with dependencies
-resource "null_resource" "lambda_deps" {
-  provisioner "local-exec" {
-    command = <<EOF
-cd ${path.module}
-mkdir -p lambda_package
-cp ../s3_github_trigger.py lambda_package/
-cp requirements.txt lambda_package/
-cd lambda_package
-pip install -r requirements.txt -t .
-EOF
-  }
-  
-  triggers = {
-    code_hash = filebase64sha256("../s3_github_trigger.py")
-  }
-}
-
+# Package Lambda function
 data "archive_file" "s3_trigger_zip" {
   type        = "zip"
-  source_dir  = "${path.module}/lambda_package"
+  source_file = "../s3_github_trigger.py"
   output_path = "s3_github_trigger.zip"
-  
-  depends_on = [null_resource.lambda_deps]
 }
 
 # S3 Event Notification
